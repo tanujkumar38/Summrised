@@ -1,39 +1,47 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
   <head>
-    <meta charset="UTF-8">
-    <title>RSS Feed</title>
-    <link rel="stylesheet" href="style.css">
+    <meta charset="utf-8" />
+    <title>RSS Feeds</title>
   </head>
   <body>
-    <header>
-      <h1>RSS Feed</h1>
-    </header>
-    <main>
-      <ul id="feed-list"></ul>
-    </main>
+    <h1>My RSS Feeds</h1>
+
+    <div id="feed1"></div>
+    <div id="feed2"></div>
 
     <script>
-      const feedList = document.getElementById('feed-list');
-
-      fetch('https://example.com/feed.xml')
-        .then(response => response.text())
-        .then(str => new window.DOMParser().parseFromString(str, "text/xml"))
-        .then(data => {
-          const items = data.querySelectorAll('item');
-          let feedItems = '';
-          items.forEach(el => {
-            const title = el.querySelector('title').textContent;
-            const link = el.querySelector('link').textContent;
-            const description = el.querySelector('description').textContent;
-            feedItems += `<li>
-                            <h3><a href="${link}">${title}</a></h3>
-                            <p>${description}</p>
-                          </li>`;
+      // Feed 1
+      fetch('http://feeds.feedburner.com/ign/games-all')
+        .then((response) => response.text())
+        .then((xml) => {
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(xml, 'application/xml');
+          const items = doc.querySelectorAll('item');
+          let html = '';
+          items.forEach((item) => {
+            const title = item.querySelector('title').textContent;
+            const link = item.querySelector('link').textContent;
+            html += `<h2><a href="${link}">${title}</a></h2>`;
           });
-          feedList.innerHTML = feedItems;
-        })
-        .catch(err => console.log(err));
+          document.querySelector('#feed1').innerHTML = html;
+        });
+
+      // Feed 2
+      fetch('https://kotaku.com/rss')
+        .then((response) => response.text())
+        .then((xml) => {
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(xml, 'application/xml');
+          const items = doc.querySelectorAll('item');
+          let html = '';
+          items.forEach((item) => {
+            const title = item.querySelector('title').textContent;
+            const link = item.querySelector('link').textContent;
+            html += `<h2><a href="${link}">${title}</a></h2>`;
+          });
+          document.querySelector('#feed2').innerHTML = html;
+        });
     </script>
   </body>
 </html>
