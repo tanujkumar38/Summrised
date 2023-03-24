@@ -1,47 +1,96 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <title>RSS Feeds</title>
-  </head>
-  <body>
-    <h1>My RSS Feeds</h1>
+<head>
+  <meta charset="UTF-8">
+  <title>RSS Feed Reader</title>
+  <style>
+    /* Styling for the article summaries */
+    .article {
+      margin-bottom: 10px;
+      padding: 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .article h2 {
+      margin-top: 0;
+    }
+    .article p {
+      margin-bottom: 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>RSS Feed Reader</h1>
+  <div id="articles"></div>
 
-    <div id="feed1"></div>
-    <div id="feed2"></div>
+  <script>
+    // Set the RSS feed URL here
+    const RSS_FEED_URL = "https://kotaku.com/rss";
 
-    <script>
-      // Feed 1
-      fetch('http://feeds.feedburner.com/ign/games-all')
-        .then((response) => response.text())
-        .then((xml) => {
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(xml, 'application/xml');
-          const items = doc.querySelectorAll('item');
-          let html = '';
-          items.forEach((item) => {
-            const title = item.querySelector('title').textContent;
-            const link = item.querySelector('link').textContent;
-            html += `<h2><a href="${link}">${title}</a></h2>`;
-          });
-          document.querySelector('#feed1').innerHTML = html;
-        });
+    // Display a loading message while fetching the RSS feed
+    const articlesContainer = document.getElementById("articles");
+    articlesContainer.innerHTML = "<p>Loading...</p>";
 
-      // Feed 2
-      fetch('https://kotaku.com/rss')
-        .then((response) => response.text())
-        .then((xml) => {
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(xml, 'application/xml');
-          const items = doc.querySelectorAll('item');
-          let html = '';
-          items.forEach((item) => {
-            const title = item.querySelector('title').textContent;
-            const link = item.querySelector('link').textContent;
-            html += `<h2><a href="${link}">${title}</a></h2>`;
-          });
-          document.querySelector('#feed2').innerHTML = html;
-        });
-    </script>
-  </body>
+    // Fetch the RSS feed using the fetch API
+    fetch(RSS_FEED_URL)
+      .then(response => response.text())
+      .then(str => new window.DOMParser().parseFromString(str, "text/xml"))
+      .then(data => {
+        // Extract the article summaries from the RSS feed
+        const items = data.querySelectorAll("item");
+        const articleSummaries = [];
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          const title = item.querySelector("title").textContent;
+          const link = item.querySelector("link").textContent;
+          const description = item.querySelector("description").textContent;
+          const summary = `
+            <div class="article">
+              <h2><a href="${link}">${title}</a></h2>
+              <p>${description}</p>
+            </div>
+          `;
+          articleSummaries.push(summary);
+        }
+
+        // Display the article summaries
+        articlesContainer.innerHTML = articleSummaries.join("");
+      })
+      .catch(err => {
+        // Display an error message if the RSS feed can't be fetched
+        console.error(err);
+        articlesContainer.innerHTML = "<p>Error fetching RSS feed</p>";
+      });
+
+    // Update the article summaries every 5 seconds to check for new articles
+    setInterval(() => {
+      fetch(RSS_FEED_URL)
+        .then(response => response.text())
+        .then(str => new window.DOMParser().parseFromString(str, "text/xml"))
+        .then(data => {
+          // Extract the article summaries from the RSS feed
+          const items = data.querySelectorAll("item");
+          const newArticleSummaries = [];
+          for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            const title = item.querySelector("title").textContent;
+            const link = item.querySelector("link").textContent;
+            const description = item.querySelector("description").textContent;
+            const summary = `
+              <div class="article">
+                <h2><a href="${link}">${title}</a></h2>
+                <p>${description}</p>
+              </div>
+            `;
+            // Check if the article summary is already displayed
+            const existingArticle = document.querySelector(`.article a[href="${link}"]`);
+            if (!existingArticle) {
+              // Add the new article summary to the list of summaries to display
+              newArticleSummaries.push(summary);
+            }
+          }
+          // Prepend the new article summaries to the list of summaries
+          articlesContainer.insertAdjacentHTML("afterbegin", newArticleSummaries.join(""));
+        </script>
+</body>
 </html>
