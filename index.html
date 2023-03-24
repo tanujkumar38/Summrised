@@ -1,47 +1,39 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta charset="UTF-8">
-    <title>RSS Feed Example</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-      }
-      .feed {
-        max-width: 800px;
-        margin: auto;
-      }
-      .feed-title {
-        font-size: 24px;
-        font-weight: bold;
-        margin-bottom: 20px;
-      }
-      .feed-item {
-        border: 1px solid #ddd;
-        margin-bottom: 20px;
-        padding: 20px;
-      }
-      .feed-item-title {
-        font-size: 20px;
-        font-weight: bold;
-        margin-bottom: 10px;
-      }
-      .feed-item-description {
-        font-size: 16px;
-        margin-bottom: 10px;
-      }
-      .feed-item-link {
-        font-size: 14px;
-        color: #337ab7;
-        text-decoration: none;
-      }
-    </style>
+    <title>RSS Feed</title>
+    <link rel="stylesheet" href="style.css">
   </head>
   <body>
-    <div class="feed">
-      <div class="feed-title"></div>
-      <div class="feed-items"></div>
-    </div>
-    <script src="rss.js"></script>
+    <header>
+      <h1>RSS Feed</h1>
+    </header>
+    <main>
+      <ul id="feed-list"></ul>
+    </main>
+
+    <script>
+      const feedList = document.getElementById('feed-list');
+
+      fetch('https://example.com/feed.xml')
+        .then(response => response.text())
+        .then(str => new window.DOMParser().parseFromString(str, "text/xml"))
+        .then(data => {
+          const items = data.querySelectorAll('item');
+          let feedItems = '';
+          items.forEach(el => {
+            const title = el.querySelector('title').textContent;
+            const link = el.querySelector('link').textContent;
+            const description = el.querySelector('description').textContent;
+            feedItems += `<li>
+                            <h3><a href="${link}">${title}</a></h3>
+                            <p>${description}</p>
+                          </li>`;
+          });
+          feedList.innerHTML = feedItems;
+        })
+        .catch(err => console.log(err));
+    </script>
   </body>
 </html>
